@@ -6,6 +6,19 @@ import { constants } from "./helpers.js";
 const app = e();
 app.use(e.json());
 
+// Middleware CORS
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
 // Middleware para log de requisições
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
@@ -13,15 +26,19 @@ app.use((req, res, next) => {
 }); 
 
 app.post("/getVector", (req, res) => {
+  console.log("GetVector endpoint called with body:", req.body);
   const {data, timestamp, iv, appname: rawAppname } = req.body || {};
   const usePadding = req.query.usePadding ? req.query.usePadding : false;
   const appname = (rawAppname || constants.defaultAppname).trim() || constants.defaultAppname;
   
   try {
+    console.log("Attempting to encrypt with:", { data: data?.substring(0, 20) + "...", appname, timestamp, iv });
     const encrypted = encryptPayload(data, appname, timestamp, iv, usePadding);
+    console.log("Encryption successful");
     res.status(200).json(encrypted);
   }
   catch (err) {
+    console.error("Encryption error:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
