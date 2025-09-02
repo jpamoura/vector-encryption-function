@@ -39,6 +39,15 @@ app.post("/decryptVector", (req, res) => {
   }
 });
 
+// Health check endpoint for Docker
+app.get("/health", (req, res) => {
+  res.status(200).json({ 
+    status: "healthy", 
+    timestamp: new Date().toISOString(),
+    service: "vector-encryption-function"
+  });
+});
+
 
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
